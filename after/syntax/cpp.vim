@@ -41,16 +41,42 @@ hi def link cCustomFunc  Function
 " Class and namespace scope
 if exists('g:cpp_class_scope_highlight') && g:cpp_class_scope_highlight
     syn match   cCustomScope    "::"
-    syn match   cCustomClass    "\w\+\s*::"
+    syn match   cCustomClass    "\W\@<=\u\w\+\s*::"
                 \ contains=cCustomScope
-    hi def link cCustomClass Function
+	syn match   cCustomClass    "\(::\)\@<=\u\w\+\(\s\|&\|\*\|<\|>\)\@="
+	syn match   cNamespace   "\W\@<=\u\{3}::"
+	            \ contains=cCustomScope
+	syn match   cNamespace   "\W\@<=\l\+::"
+	            \ contains=cCustomScope
+    syn match   cNamespace   "\(namespace\s\)\@<=\w\+\s*"
+	syn match   cStaticElement "\(::\)\@<=\l\w\+\(\s\|)\|;\|,\)\@="
+				\ contains=cCustomScope
+    syn match   cStaticElement "\(::\)\@<=\(\u\|_\)\+\(\s\|)\|;\|,\)\@="
+				\ contains=cCustomScope
+    hi def link cCustomClass Define
+    "highlight cCustomClass ctermfg=yellow guifg=#fae500
+	highlight cNamespace gui=bold ctermfg=yellow guifg=#ef5939
+    "highlight cStaticElement ctermfg=red guifg=#e82121
+    hi def link cStaticElement StorageClass
 endif
 
+if exists('g:cpp_class_struct_members_highlight') && g:cpp_class_struct_members_highlight
+    syn match  cCustomMember    "\(\w\.\)\@<=\w\+\(;\|\s\|=\|,\|)\|\.\)\@="
+    hi def link cCustomMember Special 
+endif
+
+if exists('g:cpp_amadeus_naming_convention_highlight') && g:cpp_amadeus_naming_convention_highlight
+    syn match  cCustomClass         "\(\s\|(\|<\|,\)\@<=\u\{1,2}\(_\|\l\)\w\+"
+    syn match  cAmadeusConstant     "\(\s\|(\|,\|=\)\@<=k\u\w\+"
+    syn match  cAmadeusClassMember  "\(\s\|(\|,\|=\)\@<=_\l\w\+"
+    hi def link cAmadeusConstant StorageClass
+    hi def link cAmadeusClassMember Identifier
+endif
 " Template functions.
 " Naive implementation that sorta works in most cases. Should correctly
 " highlight everything in test/color2.cpp
 if exists('g:cpp_experimental_simple_template_highlight') && g:cpp_experimental_simple_template_highlight
-    syn region  cCustomAngleBrackets matchgroup=AngleBracketContents start="\v%(<operator\_s*)@<!%(%(\_i|template\_s*)@<=\<[<=]@!|\<@<!\<[[:space:]<=]@!)" end='>' contains=@cppSTLgroup,cppStructure,cType,cCustomClass,cCustomAngleBrackets,cNumbers
+    syn region  cCustomAngleBrackets matchgroup=AngleBracketContents start="\v%(<operator\_s*)@<!%(%(\_i|template\_s*)@<=\<[<=]@!|\<@<!\<[[:space:]<=]@!)" end='>' contains=@cppSTLgroup,cppStructure,cType,cCustomClass,cCustomAngleBrackets,cNumbers,cNamespace
     syn match   cCustomBrack    "<\|>" contains=cCustomAngleBrackets
     syn match   cCustomTemplateFunc "\w\+\s*<.*>(\@=" contains=cCustomBrack,cCustomAngleBrackets
     hi def link cCustomTemplateFunc  Function
@@ -1969,8 +1995,8 @@ if version >= 508 || !exists("did_cpp_syntax_inits")
   HiLink cppSTLfunction     Function
   HiLink cppSTLfunctional   Typedef
   HiLink cppSTLconstant     Constant
-  HiLink cppSTLnamespace    Constant
-  HiLink cppSTLtype         Typedef
+  HiLink cppSTLnamespace    cNamespace "Constant
+  HiLink cppSTLtype         Define "Typedef
   HiLink cppSTLexception    Exception
   HiLink cppSTLiterator     Typedef
   HiLink cppSTLiterator_tag Typedef
